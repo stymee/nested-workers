@@ -9,7 +9,7 @@
 	let mainWorker: Worker;
 	let runCount = 20;
 	let runComplete = 0;
-	let subWorkerCount = 6;
+	let subWorkerCount = 4;
 	let isBusy = false;
 
 	let mainText = '';
@@ -20,6 +20,28 @@
 
 	const startMain = (): void => {
 		isBusy = true;
+		subs = new Array<Run>();
+		for (let i = 0; i < subWorkerCount; i++) {
+			subs.push({
+				workerNum: i,
+				runNumber: NaN,
+				elapsed: 0,
+				percent: 0,
+				text: '',
+				count: 0
+			} as Run);
+		}
+		runs = new Array<Run>();
+		for (let i = 0; i < runCount; i++) {
+			runs.push({
+				workerNum: NaN,
+				runNumber: i,
+				elapsed: 0,
+				percent: 0,
+				text: ''
+			} as Run);
+		}
+
 		perf = performance.now();
 		mainWorker.postMessage({
 			msgType: 'init',
@@ -29,6 +51,31 @@
 			} as MainInit
 		} as MainMsg);
 	};
+
+	// $: {
+	// 	subs = new Array<Run>();
+	// 	for (let i = 0; i < subWorkerCount; i++) {
+	// 		subs.push({
+	// 			workerNum: i,
+	// 			runNumber: NaN,
+	// 			elapsed: 0,
+	// 			percent: 0,
+	// 			text: '',
+	// 			count: 0
+	// 		} as Run);
+	// 	}
+	// 	runs = new Array<Run>();
+	// 	for (let i = 0; i < runCount; i++) {
+	// 		runs.push({
+	// 			workerNum: NaN,
+	// 			runNumber: i,
+	// 			elapsed: 0,
+	// 			percent: 0,
+	// 			text: ''
+	// 		} as Run);
+	// 	}
+
+	// }
 
 	const onMainMessage = (msg: MessageEvent<MainMsg>): void => {
 		switch (msg.data.msgType) {
@@ -67,6 +114,7 @@
 				if (rc) {
 					rc.elapsed = subCompleteMsg.elapsed;
 					rc.percent = 100;
+					rc.text = `${(subCompleteMsg.elapsed/1000).toFixed(2)}sec, worker# ${subCompleteMsg.workerNum.toFixed(0).padStart(2, '0')}`
 				}
 				runs = [...runs];
 				subs = [...subs];
@@ -90,30 +138,21 @@
 	onMount(() => {
 		mainWorker = new WorkerMain();
 		mainWorker.onmessage = onMainMessage;
-		subs = new Array<Run>();
-		for (let i = 0; i < subWorkerCount; i++) {
-			subs.push({
-				workerNum: i,
-				runNumber: NaN,
-				elapsed: 0,
-				percent: 0,
-				text: '',
-				count: 0
-			} as Run);
-		}
-		runs = new Array<Run>();
-		for (let i = 0; i < runCount; i++) {
-			runs.push({
-				workerNum: NaN,
-				runNumber: i,
-				elapsed: 0,
-				percent: 0,
-				text: ''
-			} as Run);
-		}
+
 	});
 </script>
-
+<div>
+	<label>
+		<input type="range" min="10" max="40" bind:value={runCount} />
+		{runCount} runs
+	</label>
+</div>
+<div>
+	<label>
+		<input type="range" min="1" max="12" bind:value={subWorkerCount} />
+		{subWorkerCount} workers
+	</label>
+</div>
 <button on:click={startMain} disabled={isBusy}>Start Main</button>
 <div>
 	<span>Main Progress</span>

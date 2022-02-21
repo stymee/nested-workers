@@ -10,8 +10,8 @@ import type {
 } from '$lib/types';
 import WorkerSub from '$lib/sub-worker?worker';
 
-let runCount: number = 40;
-let workerCount: number = 20;
+let runCount: number = 20;
+let workerCount: number = 6;
 let workerPool: Array<Worker>;
 
 export default onmessage = async (e: MessageEvent<MainMsg>) => {
@@ -23,8 +23,11 @@ export default onmessage = async (e: MessageEvent<MainMsg>) => {
 	const init = e.data.payload as MainInit;
 	runCount = init.mainRunCount;
 	workerCount = init.workerCount;
+	workerPool = new Array<Worker>();
+	for (let i = 0; i < workerCount; i++) {
+		workerPool.push(new WorkerSub());
+	}
 
-	workerPool = new Array(workerCount).fill(new WorkerSub());
 	let completed = 0;
 	let subElapsed = 0;
 	workerPool.forEach((w) => {
