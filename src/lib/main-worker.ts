@@ -8,7 +8,7 @@ import type {
 	SubComplete,
 	Status
 } from '$lib/types';
-import WorkerSub from './sub-worker?worker';
+import WorkerSub from '$lib/sub-worker?worker';
 
 let runCount: number = 40;
 let workerCount: number = 20;

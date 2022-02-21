@@ -59,7 +59,7 @@
 				const wc = subs[subCompleteMsg.workerNum];
 				if (wc) {
 					wc.count = wc.count + 1;
-					wc.percent = 0;
+					wc.percent = 100;
 					wc.text = '';
 				}
 
