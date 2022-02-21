@@ -1,0 +1,14 @@
+:root {
+	--c-border: #555;
+	--c-text: #333;
+}
+
+html,
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	color: var(--c-text);
+}
+
+svg {
+  font-family: Arial, Helvetica, sans-serif;
+}
