@@ -11,14 +11,23 @@
 
 <div>
 	<label>
-		<input type="range" min="10" max="40" bind:value={$workerQueue.runCount} />
-		{$workerQueue.runCount} runs
+		depth
+		<input type="range" min="10" max="1000" bind:value={$workerQueue.runDepth} />
+		{$workerQueue.runDepth.toLocaleString()} M
 	</label>
 </div>
 <div>
 	<label>
+		runs
+		<input type="range" min="10" max="40" bind:value={$workerQueue.runCount} />
+		{$workerQueue.runCount}
+	</label>
+</div>
+<div>
+	<label>
+		workers
 		<input type="range" min="1" max="12" bind:value={$workerQueue.workerCount} />
-		{$workerQueue.workerCount} workers
+		{$workerQueue.workerCount}
 	</label>
 </div>
 <button on:click={() => workerQueue.startCompute()} disabled={$workerQueue.isBusy}

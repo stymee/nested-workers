@@ -2,7 +2,7 @@ declare var self: DedicatedWorkerGlobalScope;
 import type { SubMsg, SubInit, Status, SubComplete } from '$lib/types';
 
 const id = workerId();
-console.log(`${id} created`)
+console.log(`${id} created`);
 let count = 0;
 
 export default onmessage = (e: MessageEvent<SubMsg>) => {
@@ -12,31 +12,44 @@ export default onmessage = (e: MessageEvent<SubMsg>) => {
 
 	const init = e.data.payload as SubInit;
 	console.log(`${id} in sub worker# ${init.workerNum}, run# ${init.runNumber}`);
-	let completed = 0;
-	let last = 0;
-	for (let j = 0; j < init.runDepth; j++) {
-		last = fib(last);
-		completed++;
-		self.postMessage({
-			msgType: 'status',
-			payload: {
-				workerNum: init.workerNum,
-				runNumber: init.runNumber,
-				percent: (j / init.runDepth) * 100,
-				text: `sub ${init.workerNum} working main run ${init.runNumber}, sub run ${j}/${init.runDepth}, answer is ${last}`
-			} as Status
-		} as SubMsg);
+
+	let runDepth = init.runDepth * 1_000_000;
+	let runPartial = getPartial(init.runNumber);
+	let runAdd = runDepth * runPartial;
+	runDepth += runAdd;
+	let statusInterval = 0.01;
+	let nextStatus = statusInterval;
+	let lastFib = 0;
+	for (let j = 0; j < runDepth; j++) {
+		lastFib = fib(lastFib);
+		//completed++;
+		const percent = j / runDepth;
+		if (percent > nextStatus) {
+			nextStatus += statusInterval;
+			self.postMessage({
+				msgType: 'status',
+				payload: {
+					workerNum: init.workerNum,
+					runNumber: init.runNumber,
+					percent: percent * 100,
+					text: `sub ${init.workerNum} working main run ${init.runNumber}, sub run ${j}/${init.runDepth}, answer is ${lastFib}`
+				} as Status
+			} as SubMsg);
+		}
 	}
 
-	count ++;
-	//console.log(`   in sub worker# ${init.workerNum}, run# ${init.mainRunNumber}, sending complete`);
+	count++;
+	const elapsed = performance.now() - perf;
+	console.log(
+		`   in sub worker# ${init.workerNum}, run# ${
+			init.runNumber
+		}, sending complete in ${elapsed.toFixed(3)}ms`
+	);
 	self.postMessage({
 		msgType: 'sub-complete',
 		payload: {
 			workerNum: init.workerNum,
 			runNumber: init.runNumber,
-			subRunsCompleted: completed,
-			subRunsCount: init.runDepth,
 			elapsed: performance.now() - perf
 		} as SubComplete
 	} as SubMsg);
@@ -50,7 +63,7 @@ function workerId(): string {
 	return 'w-' + s1 + s2;
 }
 
-const fib = (n) => {
+const fib = (n: number) => {
 	if (n < 2) {
 		return n; // or 1
 	} else {
@@ -58,3 +71,33 @@ const fib = (n) => {
 	}
 };
 
+const getPartial = (n: number): number => {
+	const check = [
+		1.0, //1
+		1.2, //2
+		1.5, //3
+		0.8, //4
+		0.7, //5
+		0.5, //6
+		1.3, //7
+		1.4, //8
+		0.8, //9
+		0.9, //10
+		1.3, //1
+		1.1, //2
+		0.5, //3
+		0.8, //4
+		0.7, //5
+		1.5, //6
+		1.1, //7
+		1.0, //8
+		0.6, //9
+		0.4, //20
+	];
+
+	if (n < check.length) {
+		return check[n];
+	} else {
+		return check[n-check.length];
+	}
+}

@@ -1,6 +1,6 @@
 import { writable, get } from 'svelte/store';
 import WorkerMain from '$lib/main-worker?worker';
-import type { MainInit, MainMsg, MainComplete, SubInit, SubMsg, SubComplete, Status, Run } from '$lib/types';
+import type { MainInit, MainMsg, SubComplete, Status, Run, Sub } from '$lib/types';
 
 type WorkerQueue = {
 	isBusy: boolean;
@@ -8,7 +8,7 @@ type WorkerQueue = {
 	runCount: number;
 	runDepth: number;
 	runs: Array<Run>;
-	subs: Array<Run>;
+	subs: Array<Sub>;
 	progress: number;
 	elapsed: number;
 	subElapsed: number;
@@ -19,11 +19,12 @@ let mainWorker: Worker;
 function createWorkerQueue() {
 	const { subscribe, set, update } = writable<WorkerQueue>({
 		isBusy: false,
-		workerCount: 6,
+		workerCount: 4,
 		runCount: 20,
-		runDepth: 6000,
+		runDepth: 500,
 		runs: new Array<Run>(),
-		subs: new Array<Run>(),
+		subs: new Array<Sub>(),
+		progress: 0,
 		elapsed: 0,
 		subElapsed: 0
 	} as WorkerQueue);
@@ -35,7 +36,11 @@ function createWorkerQueue() {
 
 		startCompute: (): void => {
 			const me = get(workerQueue);
+			const perf = performance.now();
 			if (!mainWorker) mainWorker = new WorkerMain();
+
+			const totalProgress = me.runCount * 100;
+			let currentProgress = 0;
 
 			let runsComplete = 0;
 			mainWorker.onmessage = (msg: MessageEvent<MainMsg>): void => {
@@ -51,16 +56,18 @@ function createWorkerQueue() {
 							}
 							const rs = self.runs[statusMsg.runNumber];
 							if (rs) {
+								rs.state = 'active';
 								rs.workerNum = statusMsg.workerNum;
 								rs.percent = statusMsg.percent;
 								rs.text = statusMsg.text;
 							}
-							self.runs = [...self.runs];
-							self.subs = [...self.subs];
+
+							currentProgress = self.runs.reduce((acc, v) => acc+=v.percent, 0);
+							self.progress = currentProgress / totalProgress * 100;
+							self.elapsed = performance.now() - perf;
 							return self;
 						})
 
-						//console.log('got a from', msg.data.text);
 						break;
 
 					case 'sub-complete':
@@ -70,7 +77,7 @@ function createWorkerQueue() {
 						workerQueue.update(self => {
 							const wc = self.subs[subCompleteMsg.workerNum];
 							if (wc) {
-								wc.count = wc.count + 1;
+								wc.runCount++;
 								wc.percent = 100;
 								wc.text = '';
 							}
@@ -79,12 +86,15 @@ function createWorkerQueue() {
 							if (rc) {
 								rc.elapsed = subCompleteMsg.elapsed;
 								rc.percent = 100;
+								rc.state = 'complete';
 								rc.text = `${(subCompleteMsg.elapsed / 1000).toFixed(
 									2
 								)}sec, worker# ${subCompleteMsg.workerNum.toFixed(0).padStart(2, '0')}`;
 							}
-							self.runs = [...self.runs];
-							self.subs = [...self.subs];
+							currentProgress = self.runs.reduce((acc, v) => (acc += v.percent), 0);
+							self.progress = currentProgress / totalProgress * 100;
+							self.elapsed = performance.now() - perf;
+							self.subElapsed += rc.elapsed;
 
 							return self;
 						})
@@ -96,12 +106,6 @@ function createWorkerQueue() {
 							self.isBusy = false;
 							return self;
 						})
-						const mainCompleteMsg = msg.data.payload as MainComplete;
-						// mainText = `total Elapsed ${((performance.now() - perf) / 1000).toFixed(
-						// 	2
-						// )} sec, subElapsed = ${(mainCompleteMsg.subElapsed / 1000).toFixed(2)} sec`;
-
-						//console.log('got a status', msg.data.text);
 						break;
 
 					default:
@@ -112,22 +116,23 @@ function createWorkerQueue() {
 
 			workerQueue.update(self => {
 					self.isBusy = true;
-					self.subs = new Array<Run>();
+					self.subs = new Array<Sub>();
 					for (let i = 0; i < self.workerCount; i++) {
 						self.subs.push({
 							workerNum: i,
 							runNumber: NaN,
-							elapsed: 0,
+							totalElapsed: 0,
 							percent: 0,
+							runCount: 0,
 							text: '',
-							count: 0
-						} as Run);
+						} as Sub);
 					}
 					self.runs = new Array<Run>();
 					for (let i = 0; i < self.runCount; i++) {
 						self.runs.push({
-							workerNum: NaN,
 							runNumber: i,
+							state: 'ready',
+							workerNum: NaN,
 							elapsed: 0,
 							percent: 0,
 							text: ''

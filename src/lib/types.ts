@@ -1,11 +1,22 @@
+export type State = 'ready' | 'active' | 'complete';
+
 export type Run = {
 	workerNum: number;
 	runNumber: number;
+	state: State;
 	percent: number;
 	elapsed: number;
 	text: string;
-	count: number;
 };
+
+export type Sub = {
+	workerNum: number;
+	runNumber: number;
+	percent: number;
+	totalElapsed: number;
+	runCount: number;
+	text: string;
+}
 
 export type Status = {
 	workerNum: number;
