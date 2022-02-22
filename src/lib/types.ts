@@ -14,6 +14,8 @@ export type Sub = {
 	runNumber: number;
 	percent: number;
 	totalElapsed: number;
+	percentElapsed: number;
+	runsCompleted: Array<Run>;
 	runCount: number;
 	text: string;
 }

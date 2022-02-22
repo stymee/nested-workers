@@ -30,9 +30,8 @@
 		{$workerQueue.workerCount}
 	</label>
 </div>
-<button on:click={() => workerQueue.startCompute()} disabled={$workerQueue.isBusy}
-	>Start Main</button
->
+<button on:click={() => workerQueue.startCompute()} disabled={$workerQueue.isBusy}>Start</button>
+<button on:click={() => workerQueue.stopCompute()} disabled={!$workerQueue.isBusy}>Stop</button>
 <div>
 	<span>Main Progress</span>
 	<Progress value={$workerQueue.progress} />
@@ -45,11 +44,31 @@
 	{/each}
 </div>
 
-<div class="subs">
-	{#each $workerQueue.subs as sub}
-		<SubView {sub} />
-	{/each}
-</div>
+<table class="subs">
+	<thead>
+		<tr>
+			<th>Worker</th>
+			<th>Progress</th>
+			<th>Count</th>
+			<th>Total Sec</th>
+			<th>% Sec</th>
+			<th>Runs Completed</th>
+		</tr>
+	</thead>
+	<tbody>
+		{#each $workerQueue.subs as sub}
+			<SubView {sub} />
+		{/each}
+		<tr>
+			<td />
+			<td />
+			<td>{$workerQueue.subs.reduce((acc, v) => acc += v.runCount, 0)}</td>
+			<td>{`${($workerQueue.subs.reduce((acc, v) => acc += v.totalElapsed, 0) / 1000).toFixed(2)}s`}</td>
+			<td>{`${$workerQueue.subs.reduce((acc, v) => acc += v.percentElapsed, 0).toFixed(1)}%`}</td>
+			<td />
+		</tr>
+	</tbody>
+</table>
 
 <style>
 	div {
@@ -62,5 +81,17 @@
 
 	.subs {
 		padding: 5px;
+	}
+	table {
+		border: 1px solid #aaa;
+		border-collapse: collapse;
+	}
+	th {
+		padding: 0.5em;
+		border: 1px solid #aaa;
+	}
+	td {
+		text-align: center;
+		border: 1px solid #aaa;
 	}
 </style>
