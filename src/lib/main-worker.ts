@@ -10,20 +10,17 @@ import type {
 } from '$lib/types';
 import WorkerSub from '$lib/sub-worker?worker';
 
-let runCount: number = 20;
-let workerCount: number = 6;
-let workerPool: Array<Worker>;
 
 export default onmessage = async (e: MessageEvent<MainMsg>) => {
-	//console.log('in main worker...', e.data);
+	console.log('in main worker...', e.data);
 	let perf = performance.now();
 	if (e.data.msgType != 'init')
 		console.error(`Main Worker received unsupported msg type ${e.data.msgType}`);
 
 	const init = e.data.payload as MainInit;
-	runCount = init.mainRunCount;
-	workerCount = init.workerCount;
-	workerPool = new Array<Worker>();
+	const runCount = init.runCount;
+	const workerCount = init.workerCount;
+	const workerPool = new Array<Worker>();
 	for (let i = 0; i < workerCount; i++) {
 		workerPool.push(new WorkerSub());
 	}
@@ -50,13 +47,14 @@ export default onmessage = async (e: MessageEvent<MainMsg>) => {
 						self.postMessage({
 							msgType: 'main-complete',
 							payload: {
-								mainRunsCompleted: completed,
-								mainRunCount: runCount,
+								runsCompleted: completed,
+								runCount: runCount,
 								elapsed: performance.now() - perf,
 								subElapsed
 							} as MainComplete
 						} as MainMsg);
 						workerPool.forEach((w) => w.terminate());
+						workerPool.length = 0;
 					}
 					break;
 			}
@@ -69,7 +67,8 @@ export default onmessage = async (e: MessageEvent<MainMsg>) => {
 			msgType: 'init',
 			payload: {
 				workerNum,
-				mainRunNumber: j,
+				runNumber: j,
+				runDepth: init.runDepth,
 				subRunCount: Math.random() * 10
 			} as SubInit
 		} as SubMsg);

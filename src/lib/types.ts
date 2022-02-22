@@ -18,13 +18,14 @@ export type MsgType = 'init' | 'main-complete' | 'sub-complete' | 'status';
 
 export type MainInit = {
 	workerCount: number;
-	mainRunCount: number;
+	runCount: number;
+	runDepth: number;
 };
 
 export type MainComplete = {
-	mainRunNumber: number;
-	mainRunsCompleted: number;
-	mainRunCount: number;
+	runNumber: number;
+	runsCompleted: number;
+	runCount: number;
 	elapsed: number;
 	subElapsed: number;
 };
@@ -36,15 +37,13 @@ export type MainMsg = {
 
 export type SubInit = {
 	workerNum: number;
-	mainRunNumber: number;
-	subRunCount: number;
+	runNumber: number;
+	runDepth: number;
 };
 
 export type SubComplete = {
 	workerNum: number;
-	mainRunNumber: number;
-	subRunsCompleted: number;
-	subRunsCount: number;
+	runNumber: number;
 	elapsed: number;
 };
 
