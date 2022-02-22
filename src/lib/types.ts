@@ -27,12 +27,13 @@ export type Status = {
 	text: string;
 };
 
-export type MsgType = 'init' | 'main-complete' | 'sub-complete' | 'status';
+export type MsgType = 'init' | 'main-complete' | 'sub-complete' | 'status' | 'cancel';
 
 export type MainInit = {
 	workerCount: number;
 	runCount: number;
 	runDepth: number;
+	optimized: boolean;
 };
 
 export type MainComplete = {

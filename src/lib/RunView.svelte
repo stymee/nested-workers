@@ -25,8 +25,8 @@
 </script>
 
 <svg x="0" y="0" {width} {height}>
-	<rect x={0} y={0} {width} {height} fill="none" stroke="#a5a5a5" rx="4" ry="4" />
-	<rect x={0} y={0} width={bar} {height} fill={color} rx="4" ry="4" />
+	<rect x={0} y={0} {width} {height} fill="none" stroke="#a5a5a5" />
+	<rect x={0} y={0} width={bar} {height} fill={color} />
 	<text x={2} y={2} dy=".8em" font-size="12px" fill="#a5a5a5">
 		{run.runNumber}
 	</text>

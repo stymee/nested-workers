@@ -1,10 +1,8 @@
 <script lang="ts">
 	import type { Sub } from '$lib/types';
 	import Progress from '$lib/Progress.svelte';
-	import Run from '$lib/RunView.svelte';
+	import SubRunComp from '$lib/SubRunComp.svelte';
 	export let sub: Sub;
-
-	//$: runNumber = isNaN(sub.runNumber) ? '?' : sub.runNumber.toFixed(0);
 </script>
 
 <tr>
@@ -13,16 +11,24 @@
 	<td>{sub.runCount}</td>
 	<td>{`${(sub.totalElapsed / 1000).toFixed(1)}s`}</td>
 	<td>{`${sub.percentElapsed.toFixed(1)}%`}</td>
-	<td>
+	<td class="runs">
 		{#each sub.runsCompleted as run}
-			<Run {run} />
+			<SubRunComp {run} />
 		{/each}
 	</td>
 </tr>
 
 <style>
+	/* tr {
+		padding: 0;
+		margin: 0;
+	} */
 	td {
+		padding: 2px;
 		text-align: center;
 		border: 1px solid #aaa;
+	}
+	td.runs {
+		text-align: start;
 	}
 </style>
