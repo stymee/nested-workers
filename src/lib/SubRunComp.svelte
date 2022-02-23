@@ -4,7 +4,7 @@
 
 	let height = 18;
 	let color = '#0af';
-	$: bar = (run.elapsed / 1000) * 50;
+	$: bar = (run.elapsed / 1000) * 20;
 </script>
 
 <svg x="0" y="0" width={bar} height="18">
