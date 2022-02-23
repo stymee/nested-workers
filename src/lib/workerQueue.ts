@@ -22,7 +22,7 @@ let perf: number;
 function createWorkerQueue() {
 	const { subscribe, set, update } = writable<WorkerQueue>({
 		isBusy: false,
-		workerCount: 4,
+		workerCount: 8,
 		runCount: 40,
 		runDepth: 200,
 		optimized: true,
