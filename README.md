@@ -19,7 +19,7 @@ There is a Main web worker that handles sending/receiving messages between itsel
 
 Each Sub web worker (there can be any number of them) will run some compute intensive function on a separate cpu core/thread (if available).
 
-![Screenshot of application](img/screen.gif?raw=true)
+![Screenshot of application](img/screen1.gif)
 
 
 
